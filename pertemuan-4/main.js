@@ -15,7 +15,7 @@ const projects = [
     },
     {
         id : 3,
-        title : "Landing Page Profile Perusahaan",
+        title : "Landing Page Profil Perusahaan",
         category : "Web App",
         budget : 1500000,
         completed : false
@@ -28,6 +28,11 @@ const projects = [
         completed : false
     }
 ];
+
+const state = {
+    category : "Semua",
+    search : ""
+};
 
 const formatRupiah = (angka) => {
     return new Intl.NumberFormat('id-ID',{
@@ -52,7 +57,7 @@ const renderProjects = (filteredList) => {
     if (!container) return;
 
     if(filteredList.length === 0){
-        container.innerHTML = "<p style='text-align: center; color: #64748b; padding: 20px;'>Tidak ada proyek pada kategori ini.</p>";
+        container.innerHTML = "<p style='text-align: center; color: #64748b; padding: 20px;'>Tidak ada proyek yang cocok dengan pencarian atau filter.</p>";
         return;
     }
 
@@ -67,8 +72,10 @@ const renderProjects = (filteredList) => {
         <h4>${proj.title}</h4>
         <p class = "project-budget">${formatRupiah(proj.budget)}</p>
         </div>
-        </div>
-        <span class= "badge ${badgeClass}">${statusText}</span>
+        <div class = "project-actions">
+        <span class = "badge ${badgeClass}">${statusText}</span><br>
+        <button class = "btn-action" data-action = "toggle" data-id = "${proj.id}">Ubah Status</button>
+        <button class = "btn-action hapus" data-action = "delete" data-id = "${proj.id}">Hapus Proyek</button>
         </div>
         </div>
         `;
@@ -77,22 +84,117 @@ const renderProjects = (filteredList) => {
     container.innerHTML = htmlString;
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-    renderProjects(projects);
-    updateStats(projects);
-const filterButtons = document.querySelectorAll(".btn-filter");
-filterButtons.forEach(btn => {
-    btn.addEventListener("click", (e) => {
-        filterButtons.forEach(b => b.classList.remove("active"));
-        e.target.classList.add("active");
+const getVisibleProjects = () => {
+    const keyword = state.search.toLowerCase();
 
-        const selectedCategory = e.target.getAttribute("data-category");
-        if (selectedCategory === "Semua") {
-            renderProjects(projects);
-        } else {
-            const filtered = projects.filter(p => p.category === selectedCategory);
-            renderProjects(filtered);
-            }
+    return projects
+        .filter(proj => state.category === "Semua" || proj.category === state.category)
+        .filter(proj => proj.title.toLowerCase().includes(keyword));
+};
+
+const renderList = () => {
+    renderProjects(getVisibleProjects());
+};
+
+const renderApp = () => {
+    updateStats(projects);
+    renderList();
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    const projectForm = document.getElementById("project-form");
+    const titleInput = document.getElementById("input-title");
+    const categoryInput = document.getElementById("input-category");
+    const budgetInput = document.getElementById("input-budget");
+    const completedInput = document.getElementById("input-completed");
+    const formError = document.getElementById("form-error");
+    const searchInput = document.getElementById("search-input");
+    const projectList = document.getElementById("project-list");
+    const filterButtons = document.querySelectorAll(".btn-filter");
+
+    const showFormError = (message) => {
+        formError.textContent = message;
+        formError.classList.add("show");
+    };
+
+    const hideFormError = () => {
+        formError.textContent = "";
+        formError.classList.remove("show");
+    };
+
+    projectForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const title = titleInput.value.trim();
+        const budget = Number(budgetInput.value);
+        const errors = [];
+
+        if (!title) {
+            errors.push("Judul proyek tidak boleh kosong.");
+        }
+
+        if (!budgetInput.value || !(budget > 0)) {
+            errors.push("Estimasi anggaran harus lebih besar dari 0.");
+        }
+
+        if (errors.length > 0) {
+            showFormError(errors.join(" "));
+            return;
+        }
+
+        hideFormError();
+
+        const proyekBaru = {
+            id : Date.now(),
+            title : title,
+            category : categoryInput.value,
+            budget : budget,
+            completed : completedInput.checked
+        };
+
+        projects.push(proyekBaru);
+        projectForm.reset();
+        renderApp();
+    });
+
+    searchInput.addEventListener("input", () => {
+        state.search = searchInput.value;
+        renderList();
+    });
+
+    filterButtons.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            filterButtons.forEach(b => b.classList.remove("active"));
+            e.target.classList.add("active");
+
+            state.category = e.target.getAttribute("data-category");
+            renderList();
         });
     });
+
+    projectList.addEventListener("click", (e) => {
+        const actionButton = e.target.closest("button[data-action]");
+        if (!actionButton) return;
+
+        const id = Number(actionButton.dataset.id);
+        const action = actionButton.dataset.action;
+
+        if (action === "toggle") {
+            const proyek = projects.find(item => item.id === id);
+            if (!proyek) return;
+
+            proyek.completed = !proyek.completed;
+            renderApp();
+        }
+
+        if (action === "delete") {
+            const index = projects.findIndex(item => item.id === id);
+            if (index === -1) return;
+
+            projects.splice(index, 1);
+            renderApp();
+        }
+    });
+
+    renderApp();
 });

@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Portofolio Proyek - Modul 4</title>
+<link rel="icon" href="data:,">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; }
 body { background-color: #f1f5f9; color: #0f172a; padding: 30px 15px; }
 .container { max-width: 800px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 25px;
 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-h1 { color: #1e3a8a; font-size: 24px; margin-bottom: 5px; }
-p.subtitle { color: #64748b; margin-bottom: 20px; font-size: 14px; }
+h1 { color: #1e3a8a; font-size: 24px; margin-bottom: 20px; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;
 margin-bottom: 25px; }
 .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; text-
@@ -24,7 +24,7 @@ cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
 .project-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px;
 display: flex; justify-content: space-between; align-items: center; background: #ffffff; transition: transform
 0.15s ease; }
-.project-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.project-card:hover { transform: translateY(-2px); }
 .project-info h4 { font-size: 16px; color: #0f172a; margin-bottom: 4px; }
 .project-category { display: inline-block; font-size: 12px; color: #0284c7; background: #e0f2fe; padding:
 2px 8px; border-radius: 4px; margin-bottom: 6px; font-weight: 600; }
@@ -32,13 +32,63 @@ display: flex; justify-content: space-between; align-items: center; background: 
 .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .badge-success { background: #dcfce7; color: #166534; }
 .badge-pending { background: #fef9c3; color: #854d0e; }
+.form-section { margin-bottom: 20px; }
+.form-section h3 { font-size: 15px; color: #1e3a8a; margin-bottom: 10px; }
+.form-group { margin-bottom: 10px; }
+.form-group label { display: block; font-size: 13px; color: #334155; margin-bottom: 4px; }
+.form-group input, .form-group select { width: 100%; padding: 7px 9px; border: 1px solid #cbd5e1;
+border-radius: 5px; font-size: 13px; font-family: inherit; background: #ffffff; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: #1e3a8a; }
+.form-group input[type="checkbox"] { width: auto; }
+.btn-submit { padding: 8px 16px; border: 1px solid #1e3a8a; background: #1e3a8a; color: #ffffff;
+border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.btn-submit:hover { background: #172554; }
+.form-error { display: none; color: #b91c1c; font-size: 13px; margin-top: 6px; }
+.form-error.show { display: block; }
+.search-input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 5px;
+font-size: 13px; font-family: inherit; margin-bottom: 12px; }
+.search-input:focus { outline: none; border-color: #1e3a8a; }
+.project-actions { text-align: right; }
+.btn-action { margin-top: 5px; margin-left: 4px; padding: 4px 8px; border: 1px solid #cbd5e1;
+border-radius: 4px; background: #ffffff; color: #334155; font-size: 12px; cursor: pointer; }
+.btn-action:hover { background: #f1f5f9; }
+.btn-action.hapus { color: #b91c1c; border-color: #fecaca; }
 </style>
 </head>
 <body>
 <div class="container">
     <h1>Portofolio Proyek</h1>
-<p class="subtitle">Modul 4: Pengolahan Logika Data & Interaktivitas DOM</p>
-<!-- Kartu Ringkasan Statistik -->
+
+<div class="form-section">
+<h3>Tambah Proyek Baru</h3>
+<form id="project-form">
+<div class="form-group">
+<label for="input-title">Judul Proyek</label>
+<input type="text" id="input-title">
+</div>
+<div class="form-group">
+<label for="input-category">Kategori</label>
+<select id="input-category">
+<option value="Web App">Web App</option>
+<option value="Mobile App">Mobile App</option>
+<option value="Desktop App">Desktop App</option>
+<option value="UI/UX Design">UI/UX Design</option>
+</select>
+</div>
+<div class="form-group">
+<label for="input-budget">Estimasi Anggaran (Rp)</label>
+<input type="number" id="input-budget">
+</div>
+<div class="form-group">
+<label for="input-completed"><input type="checkbox" id="input-completed"> Sudah Selesai</label>
+</div>
+<div class="form-group">
+<button type="submit" class="btn-submit">Tambah Proyek</button>
+</div>
+<p class="form-error" id="form-error"></p>
+</form>
+</div>
+
 <div class="stats-grid">
 <div class="stat-card">
 <h3>Total Proyek</h3>
@@ -53,14 +103,16 @@ display: flex; justify-content: space-between; align-items: center; background: 
 <p id="stat-completed-projects">0</p>
 </div>
 </div>
-<!-- Tombol Filter Kategori -->
+
+<input type="search" id="search-input" class="search-input" placeholder="Cari judul proyek...">
+
 <div class="filter-group">
 <button class="btn-filter active" data-category="Semua">Semua Proyek</button>
 <button class="btn-filter" data-category="Web App">Web App</button>
 <button class="btn-filter" data-category="Desktop App">Desktop App</button>
 <button class="btn-filter" data-category="Mobile App">Mobile App</button>
 </div>
-<!-- Kontainer Daftar Proyek -->
+
 <div id="project-list"></div>
 </div>
 <script src="main.js"></script>
