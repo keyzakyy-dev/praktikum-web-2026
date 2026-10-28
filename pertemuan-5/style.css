@@ -131,3 +131,24 @@ button.add-btn:hover {
 .delete-btn:hover {
     background-color: #b91c1c;
 }
+
+.task-counter {
+    font-size: 13px;
+    color: #64748b;
+    margin: 8px 0 12px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.clear-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
